@@ -1,3 +1,11 @@
+let toggle = false;
+
+document.getElementById('toggle-bombs')?.addEventListener('click', e => {
+  toggle = !toggle;
+  if (toggle) revealBombs();
+  else hideBombs();
+});
+
 const board = document.querySelector('.board') as HTMLElement;
 
 let buttons: any = [];
@@ -5,8 +13,9 @@ let buttons: any = [];
 document.addEventListener('DOMContentLoaded', () => {
   initBoard();
   getButtonReferences();
-  initBombs(20);
+  initBombs(5);
   board.addEventListener('click', handleButtonClick);
+  board.addEventListener('contextmenu', handleRightClick);
 });
 
 function getButtonReferences() {
@@ -30,24 +39,50 @@ function initBombs(n: number): void {
   }
 }
 
+function handleRightClick(e: Event) {
+  e.preventDefault();
+  const target = e.target as HTMLElement;
+  if (!target.classList.contains('block')) return;
+
+  if (target.dataset.flag) {
+    target.removeAttribute('data-flag');
+    target.classList.remove('flag');
+    target.textContent = '';
+  } else {
+    target.setAttribute('data-flag', 'true');
+    target.classList.add('flag');
+    target.textContent = 'F';
+  }
+}
+
 function handleButtonClick(e: Event) {
   const target = e.target as HTMLElement;
   if (!target.classList.contains('block')) return;
-  if (checkIfTargetIsBomb(target)) {
-    handleGameOver();
+
+  if (target.dataset.flag) {
     return;
   }
+
+  if (checkIfTargetIsBomb(target)) {
+    handleGameOver();
+    console.log('GAME OVER');
+
+    return;
+  }
+
   checkSurroundingBlocks(target);
+  if (checkIfWon()) {
+    revealBombs();
+    alert('YOU HAVE WON!');
+    return;
+  }
 }
 
 function checkSurroundingBlocks(block: any) {
   const surroundingBlocks = getSurroundingBlocks(block);
   block.classList.add('marked');
 
-  console.log(surroundingBlocks);
-
   const numBombs = countBombs(surroundingBlocks);
-  console.log(numBombs);
 
   if (numBombs > 0) {
     block.classList.add('bomb-near-by');
@@ -62,9 +97,6 @@ function checkSurroundingBlocks(block: any) {
 }
 
 function checkIfTargetIsBomb(target: any): boolean {
-  // if (!target.dataset.bomb) {
-  //   target.classList.add('marked');
-  // }
   if (target.dataset.bomb) return true;
   return false;
 }
@@ -160,8 +192,8 @@ function findCorrespondingBlocks(coords: any): any {
   return blocks;
 }
 function handleGameOver(): void {
-  console.log('GAME OVER');
   board.removeEventListener('click', handleButtonClick);
+  revealBombs();
 }
 function getRandomInt(min: number, max: number) {
   min = Math.ceil(min);
@@ -177,6 +209,32 @@ function endsWith(num1: number, num2: number): boolean {
 function startsWith(num1: number, num2: number): boolean {
   if (Math.floor(num1 / 10) === num2) return true;
   return false;
+}
+
+function checkIfWon(): boolean {
+  let over = true;
+  buttons.forEach((button: any) => {
+    if (!button.dataset.bomb) {
+      over = over && button.classList.contains('marked');
+    }
+  });
+  return over;
+}
+
+function revealBombs(): void {
+  buttons.forEach((button: any) => {
+    if (button.dataset.bomb) {
+      button.style.backgroundColor = '#8f23238e';
+    }
+  });
+}
+
+function hideBombs(): void {
+  buttons.forEach((button: any) => {
+    if (button.dataset.bomb) {
+      button.style.backgroundColor = '#2e42585e';
+    }
+  });
 }
 
 // test(90);

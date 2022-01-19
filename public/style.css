@@ -53,13 +53,14 @@ body {
   cursor: pointer;
 }
 
-.bomb {
-  background-color: #8f23238e;
-}
 .no-bomb {
   background-color: #4d6e91b6;
 }
 
 .bomb-near-by {
   background-color: #93c9ffb6;
+}
+
+.flag {
+  color: rgb(0, 199, 235);
 }
